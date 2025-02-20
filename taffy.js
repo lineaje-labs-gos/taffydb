@@ -1258,7 +1258,14 @@ var TAFFY, exports, T;
 
         return records;
       };
-
+      var isValidData = function(data) {
+        for (var key in data) {
+          if (data.hasOwnProperty(key) && key.startsWith('___')) {
+            return false;
+          }
+        }
+        return true;
+      };
       DBI = {
         // ****************************************
         // *
@@ -1300,6 +1307,9 @@ var TAFFY, exports, T;
             input     = protectJSON( i )
             ;
           each( input, function ( v, i ) {
+            if (!isValidData(v)) {
+              throw new Error('Invalid data: contains internal index properties.');
+            }
             var nv, o;
             if ( T.isArray( v ) && i === 0 ){
               each( v, function ( av ) {

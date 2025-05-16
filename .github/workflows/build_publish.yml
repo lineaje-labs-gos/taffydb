@@ -18,11 +18,6 @@ jobs:
         with:
           node-version: '12'
 
-      - name: Configure .npmrc for JFrog
-        run: |
-          echo "//veednainc.jfrog.io/artifactory/github-build-npm/:_authToken=${{ secrets.JFROG_PASSWORD}}" >> ~/.npmrc
-          echo "registry=${{ secrets.JFROG_URL }}" >> ~/.npmrc
-
       - name: Clear npm cache
         run: npm cache clean --force
 
@@ -31,7 +26,6 @@ jobs:
 
       - name: Run tests
         run: npm test
-
       
       - name: Set version
         run: |
@@ -75,19 +69,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '12'
-
-      - name: Configure .npmrc for JFrog
-        run: |
-          echo "//veednainc.jfrog.io/artifactory/github-build-npm/:_authToken=${{ secrets.JFROG_PASSWORD }}" >> ~/.npmrc
-          echo "registry=${{ secrets.JFROG_URL }}" >> ~/.npmrc
      
       - name: Set up Git user identity
         run: |
           git config --global user.email "41227409+shruthi1798@users.noreply.github.com"
           git config --global user.name "shruthi1798"     
-      
-      - name: Update packages to try to fix vulnerabilities
-        run: npm update
 
       - name: Set up Snyk CLI
         uses: snyk/actions/setup@master

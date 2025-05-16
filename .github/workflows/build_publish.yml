@@ -21,7 +21,7 @@ jobs:
       - name: Configure .npmrc for JFrog
         run: |
           echo "//veednainc.jfrog.io/artifactory/github-build-npm/:_authToken=${{ secrets.JFROG_PASSWORD}}" >> ~/.npmrc
-          echo "registry=${{ secrets.JFROG_URL}} >> ~/.npmrc
+          echo "registry=${{ secrets.JFROG_URL }}" >> ~/.npmrc
 
       - name: Clear npm cache
         run: npm cache clean --force
@@ -79,16 +79,13 @@ jobs:
       - name: Configure .npmrc for JFrog
         run: |
           echo "//veednainc.jfrog.io/artifactory/github-build-npm/:_authToken=${{ secrets.JFROG_PASSWORD }}" >> ~/.npmrc
-          echo "registry=${{ secrets.JFROG_URL}} >> ~/.npmrc 
+          echo "registry=${{ secrets.JFROG_URL }}" >> ~/.npmrc
      
       - name: Set up Git user identity
         run: |
           git config --global user.email "41227409+shruthi1798@users.noreply.github.com"
           git config --global user.name "shruthi1798"     
       
-      - name: Install dependencies
-        run: npm install
-
       - name: Update packages to try to fix vulnerabilities
         run: npm update
 
@@ -129,10 +126,7 @@ jobs:
       - name: Configure .npmrc for JFrog
         run: |
            echo "//veednainc.jfrog.io/artifactory/github-build-npm/:_authToken=${{ secrets.JFROG_PASSWORD}}" >> ~/.npmrc
-           echo "registry=${{ secrets.JFROG_URL}} >> ~/.npmrc
-
-      - name: Install dependencies
-        run: npm install
+           echo "registry=${{ secrets.JFROG_URL }}" >> ~/.npmrc
 
       - name: Publish package to JFrog
         run: npm publish taffydb-2.7.3-lineaj.test.tgz

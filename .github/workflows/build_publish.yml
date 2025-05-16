@@ -26,19 +26,6 @@ jobs:
 
       - name: Run tests
         run: npm test
-      
-      - name: Set version
-        run: |
-          npm version 2.7.3.lineaje-test --no-git-tag-version
-          echo "Version set to $(node -p 'require(\"./package.json\").version')"
-
-      - name: Commit version
-        run: |
-          git config --global user.email "41227409+shruthi1798@users.noreply.github.com"
-          git config --global user.name "shruthi1798"
-          git add package.json package-lock.json
-          git commit -m "set version to 2.7.3.lineaje-test"
-          git push
 
       - name: Create tarball
         run: npm pack
@@ -115,6 +102,6 @@ jobs:
            echo "registry=${{ secrets.JFROG_URL }}" >> ~/.npmrc
 
       - name: Publish package to JFrog
-        run: npm publish taffydb-2.7.3-lineaj.test.tgz
+        run: npm publish taffydb-2.7.3.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.JFROG_PASSWORD}}

@@ -1,0 +1,48 @@
+name: Publish Workflow
+
+on:
+  push:
+    tag:
+      - v* 
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description:  Provide the tag to publish the package
+        required: false
+
+jobs:
+
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+        with:
+          ref: ${{  github.event.inputs.release_version }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Update package version
+        run: |
+            npm version ${{ github.event.inputs.release_version}} --no-git-tag-version
+
+      - name: Read version and package
+        run: |
+           PACKAGE_FILENAME=$(npm pack --pack-destination ./)
+           echo "PACKAGE_FILENAME=$PACKAGE_FILENAME" >> $GITHUB_ENV
+
+      - name: Configure .npmrc for JFrog
+        run: |
+            echo "registry=https://${{ secrets.JFROG_HOST_NAME }}/artifactory/api/npm/${{ secrets.NPM_STAGING_ARTIFACTORY }}/" > ~/.npmrc
+            echo "//${{ secrets.JFROG_HOST_NAME }}/artifactory/api/npm/${{ secrets.NPM_STAGING_ARTIFACTORY }}/:_authToken=${{ secrets.JFROG_PASSWORD }}" >> ~/.npmrc
+            echo "always-auth=true" >> ~/.npmrc
+
+      - name: Publish package to JFrog
+        run: npm publish "$PACKAGE_FILENAME"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.JFROG_PASSWORD }}

@@ -9,7 +9,6 @@ on:
       release_version:
         description:  Provide the branch/tag to build and test
         required: false
-        default: false
 
 jobs:
 

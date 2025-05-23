@@ -9,7 +9,6 @@ on:
       release_version:
         description:  Provide the tag to publish the package
         required: false
-        default: false
 
 jobs:
 

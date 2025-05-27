@@ -25,7 +25,16 @@
 // BUILD 193d48d, modified by mmikowski to pass jslint
 
 // Setup TAFFY name space to return an object with methods
-var TAFFY, exports, T;
+var TAFFY, T;
+
+  var isValidData = function(data) {
+        for (var key in data) {
+          if (data.hasOwnProperty(key) && key.startsWith('___')) {
+            return false;
+          }
+        }
+        return true;
+      };
 (function () {
   'use strict';
   var
@@ -1300,6 +1309,14 @@ var TAFFY, exports, T;
             input     = protectJSON( i )
             ;
           each( input, function ( v, i ) {
+            
+            if (v.___id || v.___s) {
+              delete v.___id;
+              delete v.___s;
+            }
+            if (!isValidData(v)) {
+              throw new Error('Invalid data: contains internal index properties.');
+            }
             var nv, o;
             if ( T.isArray( v ) && i === 0 ){
               each( v, function ( av ) {
@@ -2018,4 +2035,5 @@ var TAFFY, exports, T;
 
 if ( typeof(exports) === 'object' ){
   exports.taffy = TAFFY;
+  exports.isValidData = isValidData;
 }

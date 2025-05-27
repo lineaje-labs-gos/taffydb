@@ -9,6 +9,7 @@
 
   'use strict';
   // BEGIN module-scope vars
+    const {isValidData} = require('../taffy.js');
   var
     TAFFY = require( '../taffy.js' ).taffy,
 
@@ -31,7 +32,7 @@
     // Declare init used to reset state for tests
 
     // Declare tests
-    testSmoke, testShowBug, testDummy
+    testSmoke, testShowBug, testDummy, testIsValidData
     ;
   // END module-scope vars
 
@@ -221,9 +222,72 @@
     //
     setTimeout( function (){ process.exit(0); }, 100 );
   };
+  testIsValidData = function(test_obj) {
+    // Test valid data objects
+    test_obj.ok(isValidData({}), 
+      'Empty object should be valid');
+
+    test_obj.ok(isValidData({
+      name: 'John',
+      age: 30,
+      email: 'john@example.com'
+    }), 'Object with regular keys should be valid');
+
+    test_obj.ok(isValidData({
+      _id: '123',
+      __type: 'user'
+    }), 'Object with underscore keys (less than 3) should be valid');
+
+    // Test invalid data objects
+    test_obj.ok(!isValidData({
+      ___id: '123',
+      name: 'John'
+    }), 'Object with ___id key should be invalid');
+
+    test_obj.ok(!isValidData({
+      name: 'John',
+      ___s: true
+    }), 'Object with ___s key should be invalid');
+
+    test_obj.ok(!isValidData({
+      name: 'John',
+      ___type: 'user',
+      ___modified: true
+    }), 'Object with multiple ___ keys should be invalid');
+
+    // Test edge cases
+    test_obj.ok(isValidData({
+      name: null,
+      age: null
+    }), 'Object with null values should be valid');
+
+    test_obj.ok(isValidData({
+      name: undefined,
+      age: undefined
+    }), 'Object with undefined values should be valid');
+
+    test_obj.ok(isValidData({
+      user: {
+        name: 'John',
+        ___id: '123'
+      }
+    }), 'Nested objects with invalid keys should be valid (only checks top-level)');
+
+    // Test non-object inputs
+    test_obj.ok(isValidData(null), 
+      'Null input should be valid');
+
+    test_obj.ok(isValidData(undefined), 
+      'Undefined input should be valid');
+
+    // Set the number of assertions we expect to run
+    test_obj.expect(11);
+    test_obj.done();
+  };
 
   module.exports = {
     testSmoke   : testSmoke,
     testShowBug : testShowBug,
-    testDummy   : testDummy
+    testDummy   : testDummy,
+    testIsValidData: testIsValidData
   };

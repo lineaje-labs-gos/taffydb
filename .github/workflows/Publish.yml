@@ -36,10 +36,24 @@ jobs:
         run: npm cache clean --force
 
       - name: Install dependencies for Node
-        run: npm install
+        run: npm install 2>&1 | tee npm-install.log
+
+      - name: Upload npm install log to Artifactory
+        if: success()
+        run: |
+          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
+            -T npm-install.log \
+            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version }}/npm-install.log"
            
       - name: Run tests
-        run: npm test
+        run: npm test 2>&1 | tee npm-test.log
+
+      - name: Upload npm test log to Artifactory
+        if: success()
+        run: |
+          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
+            -T npm-test.log \
+            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version }}/npm-test.log"
 
   security-scan:
     runs-on: ubuntu-latest
@@ -67,8 +81,16 @@ jobs:
       - name: Authenticate Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      - name: Run Snyk test
-        run: snyk test
+      - name: Run Snyk test and save report
+        run: |
+          snyk test 2>&1 | tee snyk-report.log
+
+      - name: Upload Snyk report to Artifactory
+        if: success()
+        run: |
+          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
+            -T snyk-report.log \
+            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security-scan/${{ github.event.inputs.build_version }}/snyk-report.log"
 
 
   publish:
@@ -102,6 +124,14 @@ jobs:
             echo "always-auth=true" >> ~/.npmrc
 
       - name: Publish package to JFrog
-        run: npm publish "$PACKAGE_FILENAME"
+        run: npm publish "$PACKAGE_FILENAME" 2>&1 | tee npm-publish.log
         env:
           NODE_AUTH_TOKEN: ${{ secrets.JFROG_PASSWORD }}
+
+      - name: Upload publish output to Artifactory
+        if: success()
+        run: |
+          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
+            -T npm-publish.log \
+            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${{ github.event.inputs.release_version }}/npm-publish.log"
+

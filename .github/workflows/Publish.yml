@@ -32,6 +32,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install JFrog CLI
+        run: curl -fL https://install-cli.jfrog.io | sh
+
       - name: Clear npm cache
         run: npm cache clean --force
 
@@ -39,22 +42,17 @@ jobs:
         run: npm install 2>&1 | tee npm-install.log
 
       - name: Upload npm install log to Artifactory
-        if: success()
         run: |
-          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
-            -T npm-install.log \
-            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version }}/npm-install.log"
-           
+          jf rt u "npm-install.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+         
       - name: Run tests
         run: npm test 2>&1 | tee npm-test.log
-
+      
       - name: Upload npm test log to Artifactory
-        if: success()
         run: |
-          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
-            -T npm-test.log \
-            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version }}/npm-test.log"
-
+          jf rt u "npm-test.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+           
+     
   security-scan:
     runs-on: ubuntu-latest
     needs: build_test
@@ -71,6 +69,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '20'
+
+      - name: Install JFrog CLI
+        run: curl -fL https://install-cli.jfrog.io | sh
       
       - name: Install dependencies for Node
         run: npm install
@@ -85,12 +86,8 @@ jobs:
         run: |
           snyk test 2>&1 | tee snyk-report.log
 
-      - name: Upload Snyk report to Artifactory
-        if: success()
-        run: |
-          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
-            -T snyk-report.log \
-            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security-scan/${{ github.event.inputs.build_version }}/snyk-report.log"
+      - name: Upload Snyk log to Artifactory
+        run: jf rt u "snyk-report.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security_scan/${{github.event.inputs.build_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 
 
   publish:
@@ -107,6 +104,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+      
+      - name: Install JFrog CLI
+        run: curl -fL https://install-cli.jfrog.io | sh
 
       - name: Update package version
         run: |
@@ -128,10 +128,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.JFROG_PASSWORD }}
 
-      - name: Upload publish output to Artifactory
-        if: success()
-        run: |
-          curl -u${{ secrets.JFROG_USER }}:${{ secrets.JFROG_PASSWORD }} \
-            -T npm-publish.log \
-            "https://${{ secrets.JFROG_HOST_NAME }}/artifactory/${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${{ github.event.inputs.release_version }}/npm-publish.log"
+      - name: Upload publish log to Artifactory
+        run: jf rt u "npm-publish.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${{  github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 

@@ -2,15 +2,10 @@ name: Publish Workflow
 
 on:
   push:
-    branches:
-      - devtask/*
     tag:
       - v* 
   workflow_dispatch:
     inputs:
-      build_version:
-        description:  Provide the branch/tag to build and test
-        required: false
       release_version:
         description:  Provide the tag to publish the package
         required: false
@@ -18,14 +13,14 @@ on:
 jobs:
   build_test:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_version != '' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '' }}
 
     steps:
     
       - name: Check out code
         uses: actions/checkout@v4.1.7
         with:
-          ref: ${{  github.event.inputs.build_version }}
+          ref: ${{  github.event.inputs.release_version }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -43,27 +38,27 @@ jobs:
 
       - name: Upload npm install log to Artifactory
         run: |
-          jf rt u "npm-install.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+          jf rt u "npm-install.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.release_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
          
       - name: Run tests
         run: npm test 2>&1 | tee npm-test.log
       
       - name: Upload npm test log to Artifactory
         run: |
-          jf rt u "npm-test.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.build_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+          jf rt u "npm-test.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.release_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
            
      
   security-scan:
     runs-on: ubuntu-latest
     needs: build_test
 
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_version != '' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '' }}
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4.1.7
         with:
-          ref: ${{ github.event.inputs.build_version }}
+          ref: ${{ github.event.inputs.release_version }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -87,7 +82,7 @@ jobs:
           snyk test 2>&1 | tee snyk-report.log
 
       - name: Upload Snyk log to Artifactory
-        run: jf rt u "snyk-report.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security_scan/${{github.event.inputs.build_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+        run: jf rt u "snyk-report.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security_scan/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 
 
   publish:

@@ -155,10 +155,13 @@ jobs:
         EOF
  
      - name: Create input.json
+       env:
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
        run: |
         cat <<EOF > ./veecli/input.json
           {
-            "project": "taffydb",
+            "project": "$PROJECT_NAME",
             "version": "${{github.event.inputs.release_version }}",
             "exclude_test_dependency": true,
             "exclude_optional_dependency": true,
@@ -167,7 +170,7 @@ jobs:
             "inputs": [
               {
                 "src_info": {
-                  "srcurl": "https://github.com/lineaje-labs-gos/taffydb",
+                  "srcurl": "$PROJECT_URL",
                   "matchingref": "${{github.event.inputs.release_version }}",
                   "type": "github"
                 }

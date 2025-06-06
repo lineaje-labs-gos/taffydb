@@ -126,3 +126,87 @@ jobs:
       - name: Upload publish log to Artifactory
         run: jf rt u "npm-publish.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${{  github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 
+  sbom_generation:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '' }}
+ 
+    steps:
+     - name: Install JFrog CLI
+       run: curl -fL https://install-cli.jfrog.io | sh
+ 
+     - name: Download veecli tarball
+       run: |
+          curl https://v1.app.veedna.com/artifacts/veecli.tar.gz -o "veecli.tar.gz"
+ 
+     - name: Extract veecli tarball
+       run: |
+          tar -xzf veecli.tar.gz
+ 
+     - name: Run pre.sh
+       run: |
+          chmod +x ./veecli/pre.sh
+          /bin/bash ./veecli/pre.sh
+       working-directory: ./  
+ 
+     - name: Write config.json from secret
+       run: |
+        cat <<EOF > ./veecli/config.json
+        ${{ secrets.VCLI_CONFIG }}
+        EOF
+ 
+     - name: Create input.json for OSS Project
+       run: |
+        cat <<EOF > ./veecli/input_oss.json
+          {
+            "project": "taffydb",
+            "version": "2.7.3",
+            "exclude_test_dependency": true,
+            "exclude_optional_dependency": true,
+            "use_native_tools": true,
+            "inputtype": "github",
+            "inputs": [
+              {
+                "src_info": {
+                  "srcurl": "https://github.com/typicaljoe/taffydb",
+                  "matchingref": "c88fd85462f4aa495064f39c4dd7af3131304151",
+                  "type": "github"
+                }
+              }
+            ],
+            "merge_dependency_tree": true
+          }
+          EOF
+ 
+     - name: Run veecli collect for OSS Project
+       run: |
+          ./veecli/veecli collect --inputfile input_oss.json --output output
+ 
+     - name: Create input.json for GOS Project
+       run: |
+        cat <<EOF > ./veecli/input_gos.json
+          {
+            "project": "taffydb",
+            "version": "2.7.3-lineaje-01",
+            "exclude_test_dependency": true,
+            "exclude_optional_dependency": true,
+            "use_native_tools": true,
+            "inputtype": "github",
+            "inputs": [
+              {
+                "src_info": {
+                  "srcurl": "https://github.com/lineaje-labs-gos/taffydb",
+                  "matchingref": "${{github.event.inputs.release_version }}",
+                  "type": "github"
+                }
+              }
+            ],
+            "merge_dependency_tree": true
+          }
+          EOF
+ 
+     - name: Run veecli collect for GOS
+       run: |
+          ./veecli/veecli collect --inputfile input_gos.json --output output
+ 
+     - name: Upload SBOM log to Artifactory
+       run: jf rt u "output/veelocal.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/sbom_generation/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}

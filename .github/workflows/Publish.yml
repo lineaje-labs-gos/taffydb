@@ -154,39 +154,12 @@ jobs:
         ${{ secrets.VCLI_CONFIG }}
         EOF
  
-     - name: Create input.json for OSS Project
+     - name: Create input.json
        run: |
-        cat <<EOF > ./veecli/input_oss.json
+        cat <<EOF > ./veecli/input.json
           {
             "project": "taffydb",
-            "version": "2.7.3",
-            "exclude_test_dependency": true,
-            "exclude_optional_dependency": true,
-            "use_native_tools": true,
-            "inputtype": "github",
-            "inputs": [
-              {
-                "src_info": {
-                  "srcurl": "https://github.com/typicaljoe/taffydb",
-                  "matchingref": "c88fd85462f4aa495064f39c4dd7af3131304151",
-                  "type": "github"
-                }
-              }
-            ],
-            "merge_dependency_tree": true
-          }
-          EOF
- 
-     - name: Run veecli collect for OSS Project
-       run: |
-          ./veecli/veecli collect --inputfile input_oss.json --output output
- 
-     - name: Create input.json for GOS Project
-       run: |
-        cat <<EOF > ./veecli/input_gos.json
-          {
-            "project": "taffydb",
-            "version": "2.7.3-lineaje-01",
+            "version": "${{github.event.inputs.release_version }}",
             "exclude_test_dependency": true,
             "exclude_optional_dependency": true,
             "use_native_tools": true,
@@ -204,9 +177,9 @@ jobs:
           }
           EOF
  
-     - name: Run veecli collect for GOS
+     - name: Run veecli collect
        run: |
-          ./veecli/veecli collect --inputfile input_gos.json --output output
+          ./veecli/veecli collect --inputfile input.json --output output
  
      - name: Upload SBOM log to Artifactory
        run: jf rt u "output/veelocal.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/sbom_generation/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}

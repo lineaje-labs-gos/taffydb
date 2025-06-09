@@ -136,7 +136,7 @@ jobs:
  
      - name: Download veecli tarball
        run: |
-          curl https://v1.app.veedna.com/artifacts/veecli.tar.gz -o "veecli.tar.gz"
+          curl ${{ secrets.VEECLI_URL }} -o "veecli.tar.gz"
  
      - name: Extract veecli tarball
        run: |
@@ -151,14 +151,13 @@ jobs:
      - name: Write config.json from secret
        run: |
         cat <<EOF > ./veecli/config.json
-        ${{ secrets.VCLI_CONFIG }}
+        ${{ secrets.VEECLI_CONFIG_FILE }}
         EOF
  
      - name: Create input.json
-       env:
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          PROJECT_URL: ${{ secrets.PROJECT_URL }}
        run: |
+        PROJECT_NAME=$(basename "${{ github.repository }}")
+        PROJECT_URL="https://github.com/${{ github.repository }}"
         cat <<EOF > ./veecli/input.json
           {
             "project": "$PROJECT_NAME",

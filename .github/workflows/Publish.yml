@@ -103,9 +103,17 @@ jobs:
       - name: Install JFrog CLI
         run: curl -fL https://install-cli.jfrog.io | sh
 
-      - name: Update package version
+      - name: Update version in package.json
         run: |
-            npm version ${{ github.event.inputs.release_version}} --no-git-tag-version
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git checkout -b release/${{ github.event.inputs.release_version }}
+          npm version ${{ github.event.inputs.release_version }} --no-git-tag-version
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add package.json
+          git commit -m "Update version to ${{ github.event.inputs.release_version }}"
+          git push origin release/${{ github.event.inputs.release_version }}
 
       - name: Read version and package
         run: |
@@ -184,7 +192,7 @@ jobs:
               {
                 "src_info": {
                   "srcurl": "$PROJECT_URL",
-                  "matchingref": "${{github.event.inputs.release_version }}",
+                  "matchingref": "release/${{github.event.inputs.release_version }}",
                   "type": "github"
                 }
               }
@@ -199,3 +207,6 @@ jobs:
  
      - name: Upload SBOM log to Artifactory
        run: jf rt u "output/veelocal.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/sbom_generation/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+
+     - name: Cleanup
+       run: git push origin --delete release/${{ github.event.inputs.release_version }}

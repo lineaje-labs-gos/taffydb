@@ -131,6 +131,15 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '' }}
  
     steps:
+     - name: Checkout repository
+       uses: actions/checkout@v4.1.7
+       with:
+          ref: ${{  github.event.inputs.release_version }}
+
+     - name: Update package version
+       run: |
+            npm version ${{ github.event.inputs.release_version}} --no-git-tag-version
+
      - name: Install JFrog CLI
        run: curl -fL https://install-cli.jfrog.io | sh
 

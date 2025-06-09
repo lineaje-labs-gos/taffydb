@@ -112,8 +112,6 @@ jobs:
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git checkout -b release/${{ github.event.inputs.release_version }}
           npm version ${{ github.event.inputs.release_version }} --no-git-tag-version
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
           git add package.json
           git commit -m "Update version to ${{ github.event.inputs.release_version }}"
           git push origin release/${{ github.event.inputs.release_version }}
@@ -122,6 +120,20 @@ jobs:
         run: |
            PACKAGE_FILENAME=$(npm pack --pack-destination ./)
            echo "PACKAGE_FILENAME=$PACKAGE_FILENAME" >> $GITHUB_ENV
+
+      - name: Import GPG private key
+        run: |
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+        env:
+            GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Sign the .tgz package file
+        run: |
+          gpg --batch --yes --pinentry-mode loopback \
+          --passphrase "$GPG_KEY_PASSPHRASE" \
+          --armor --detach-sign "$PACKAGE_FILENAME"
+        env:
+          GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }} 
 
       - name: Configure .npmrc for JFrog
         run: |
@@ -136,6 +148,9 @@ jobs:
 
       - name: Upload publish log to Artifactory
         run: jf rt u "npm-publish.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${{  github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+      
+      - name: Upload signature file to Artifactory
+        run: jf rt u "${PACKAGE_FILENAME}.asc" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/signatures/${{ github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 
   sbom_generation:
     runs-on: ubuntu-latest

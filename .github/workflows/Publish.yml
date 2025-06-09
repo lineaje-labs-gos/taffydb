@@ -10,6 +10,9 @@ on:
         description:  Provide the tag to publish the package
         required: false
 
+permissions:
+  contents: write
+  
 jobs:
   build_test:
     runs-on: ubuntu-latest

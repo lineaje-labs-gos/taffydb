@@ -186,7 +186,7 @@ jobs:
  
      - name: Run veecli collect
        run: |
-          ./veecli/veecli collect --inputfile input.json --output output
+          ./veecli/veecli collect --inputfile input.json --output output --verbose
  
      - name: Upload SBOM log to Artifactory
        run: jf rt u "output/veelocal.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/sbom_generation/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}

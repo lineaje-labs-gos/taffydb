@@ -1,6 +1,6 @@
 {
   "name": "taffydb",
-  "version": "2.7.3",
+  "version": "2.7.3-lineaje-01",
   "description": "TaffyDB is an opensouce library that brings database features into your JavaScript applications.",
   "keywords": [
     "database", "browser", "json", "collection", "records", "node", "nodejs"

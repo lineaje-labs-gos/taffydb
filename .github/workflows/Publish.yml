@@ -38,14 +38,16 @@ jobs:
 
       - name: Upload npm install log to Artifactory
         run: |
-          jf rt u "npm-install.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.release_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+          PROJECT_NAME=${GITHUB_REPOSITORY##*/}
+          jf rt u "npm-install.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${PROJECT_NAME}-${{ github.event.inputs.release_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
          
       - name: Run tests
         run: npm test 2>&1 | tee npm-test.log
       
       - name: Upload npm test log to Artifactory
         run: |
-          jf rt u "npm-test.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${{ github.event.inputs.release_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+          PROJECT_NAME=${GITHUB_REPOSITORY##*/}
+          jf rt u "npm-test.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/build_test/${PROJECT_NAME}-${{ github.event.inputs.release_version  }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
            
      
   security-scan:
@@ -82,7 +84,9 @@ jobs:
           snyk test 2>&1 | tee snyk-report.log
 
       - name: Upload Snyk log to Artifactory
-        run: jf rt u "snyk-report.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security_scan/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+        run: |
+         PROJECT_NAME=${GITHUB_REPOSITORY##*/}
+         jf rt u "snyk-report.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/security_scan/${PROJECT_NAME}-${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 
 
   publish:
@@ -127,10 +131,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.JFROG_PASSWORD }}
 
       - name: Upload publish log to Artifactory
-        run: jf rt u "npm-publish.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${{  github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+        run: |
+         PROJECT_NAME=${GITHUB_REPOSITORY##*/}
+         jf rt u "npm-publish.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/publish/${PROJECT_NAME}-${{  github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
       
       - name: Upload signature file to Artifactory
-        run: jf rt u "${PACKAGE_FILENAME}.asc" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/signatures/${{ github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+        run: |
+         PROJECT_NAME=${GITHUB_REPOSITORY##*/}
+         jf rt u "${PACKAGE_FILENAME}.asc" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/signatures/${PROJECT_NAME}-${{ github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
 
   sbom_generation:
     runs-on: ubuntu-latest
@@ -201,4 +209,6 @@ jobs:
           ./veecli/veecli collect --inputfile input.json --output output --verbose
  
      - name: Upload SBOM log to Artifactory
-       run: jf rt u "output/veelocal.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/sbom_generation/${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}
+       run: |
+        PROJECT_NAME=${GITHUB_REPOSITORY##*/}
+        jf rt u "output/veelocal.log" "${{ secrets.NPM_STAGING_ARTIFACTORY }}/logs/sbom_generation/${PROJECT_NAME}-${{github.event.inputs.release_version }}/" --url https://${{ secrets.JFROG_HOST_NAME }}/artifactory/ --access-token=${{ secrets.JFROG_PASSWORD }}

@@ -112,12 +112,19 @@ jobs:
            PACKAGE_FILENAME=$(npm pack --pack-destination ./)
            echo "PACKAGE_FILENAME=$PACKAGE_FILENAME" >> $GITHUB_ENV
 
-      - name: GPG-sign package
-        uses: sfuhrm/gpg-sign-action@main
-        with:
-          path: ${{ env.PACKAGE_FILENAME }}
-          gpg-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+      - name: Import GPG private key
+        run: |
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+        env:
+            GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+ 
+      - name: Sign the .tgz package file
+        run: |
+          gpg --batch --yes --pinentry-mode loopback \
+          --passphrase "$GPG_KEY_PASSPHRASE" \
+          --armor --detach-sign "$PACKAGE_FILENAME"
+        env:
+          GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
 
       - name: Configure .npmrc for JFrog
         run: |

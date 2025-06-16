@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/typicaljoe/taffydb.git"
+    "url": "git://github.com/lineaje-labs-gos/taffydb.git"
   },
   "author": { "name": "Ian Smith" },
   "contributors": [

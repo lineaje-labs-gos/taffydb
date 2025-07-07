@@ -1,6 +1,6 @@
 {
   "name": "taffydb",
-  "version": "2.7.3",
+  "version": "2.7.3-lineaje-01",
   "description": "TaffyDB is an opensouce library that brings database features into your JavaScript applications.",
   "keywords": [
     "database", "browser", "json", "collection", "records", "node", "nodejs"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/typicaljoe/taffydb.git"
+    "url": "git://github.com/lineaje-labs-gos/taffydb.git"
   },
   "author": { "name": "Ian Smith" },
   "contributors": [
@@ -27,6 +27,12 @@
     },
     { "name": "Matthew Chase Whittemore",
       "email": "mcwhittemore@gmail.com"
+    },
+    { "name": "Shruthi Nair",
+      "email": "41227409+shruthi1798@users.noreply.github.com"
+    },
+    { "name": "Abhisek Sanyal",
+      "email": "10907245+abhiseksanyal@users.noreply.github.com"
     }
   ],
   "license": "BSD-2-Clause",
